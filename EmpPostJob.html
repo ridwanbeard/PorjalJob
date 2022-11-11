@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Post a Job</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <!-- <link href="assets/img/favicon.png" rel="icon"> -->
+    <link href="/eNno/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="/eNno/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/eNno/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/eNno/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="/eNno/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="/eNno/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="/eNno/assets/css/style.css" rel="stylesheet">
+
+
+<body>
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+
+            <h1 class="logo"><a href="EmpHome.html">Laborlab</a></h1>
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto active" href="EmpProfile.html">Post a Job</a></li>
+                    <li><a class="nav-link scrollto" href="EmpJob.html">My Jobs</a></li>
+                    <li>
+                        <button type="button" class="btn btn-primary" onclick="logout()">Logout</button>
+                    </li>
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav><!-- .navbar -->
+        </div>
+    </header><!-- End Header -->
+
+    <!-- ======= Hero Section ======= -->
+    <section class="d-flex align-items-center" style="padding: 100pt;">
+        <div class="container" style="padding-top: 100pt;">
+            <div class="row">
+                <div class="col-3">
+                    <div>
+                        <p style="font-weight: bold; align-items: flex-end;">Job Title</p>
+                        <p style="font-weight: bold">Job Description</p>
+                        <p style="font-weight: bold"> Job Requirement</p>
+                        <p style="font-weight: bold">Salary</p>
+                        <p style="font-weight: bold">Category</p>
+                        <p style="font-weight: bold">Area</p>
+                        <p style="font-weight: bold">Expire Date</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" id="title" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="description" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="requirement" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="salary" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="category" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="area" placeholder="" style="width: 225px;">
+                    <input type="text" class="form-control" id="expdate" placeholder="" style="width: 225px;">
+                </div>
+                <div class="row">
+                    <button type="button" class="btn btn-primary" onclick="postJob()">Post Job</button>
+                </div>
+            </div>
+    </section>
+    <!--End Hero -->
+
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
+        <div class="container">
+
+            <div class="row"></div>
+            <div class="col-lg-6 pt-4 pt-lg-0 content">
+
+            </div>
+        </div>
+        </div>
+    </section>
+    <!-- End About Section -->
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer">
+
+        <div class="footer-top">
+
+            <div class="container">
+
+                <div class="row  justify-content-center">
+                    <div class="col-lg-6">
+                        <h3>Laborlab</h3>
+                        <p>Indonesia Leading Talent Ecosystem</p>
+                    </div>
+                </div>
+
+                <div class="social-links">
+                    <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+                    <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+                    <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+                    <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+                    <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+                </div>
+
+            </div>
+        </div>
+
+
+    </footer><!-- End Footer -->
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <!-- <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script> -->
+    <script src="/eNno/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/eNno/assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="/eNno/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="/eNno/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="/eNno/assets/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="/eNno/assets/js/main.js"></script>
+
+    <Script>
+        function postJob() {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const requirement = document.getElementById("requirement").value;
+            const salary = document.getElementById("salary").value;
+            const category = document.getElementById("category").value;
+            const area = document.getElementById("area").value;
+            const expdate = document.getElementById("expdate").value;
+
+            let x = document.cookie;
+            let token = x.split("=")[1]
+
+            const myHeaders = {
+                'Content-Type': "application/json"
+                // 'Access-token': token
+            }
+
+            var raw = JSON.stringify({
+                "title": title,
+                "description": description,
+                "requirement": requirement,
+                "salary": salary,
+                "category": category,
+                "area": area,
+                "expiredate": expdate,
+                "status": "available",
+                "Access-Token": `${token}`
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                mode: 'no-cors'
+                // redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:5000/create/job", requestOptions)
+                .then(response => response.json())
+                .then(result => console.log(result),
+                                alert("Job Post Success"))
+                .catch(error => console.log('error', error));
+        }
+
+
+    function logout() {
+            document.cookie = "token=; expires=Thu, 01 jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = 'index.html'
+            localStorage.clear();
+        }
+
+    </Script>
+</body>
+
+</html>

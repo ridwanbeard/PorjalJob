@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Job Detail</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <!-- <link href="assets/img/favicon.png" rel="icon"> -->
+    <link href="eNno/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="eNno/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="eNno/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="eNno/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <!-- <link href="eNno//vendor/glightbox/css/glightbox.min.css" rel="stylesheet"> -->
+    <link href="eNno/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="eNno/assets/css/style.css" rel="stylesheet">
+
+
+<body onload="applicantList()">
+
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <h1 class="logo"><a href="EmpHome.html">Laborlab</a></h1>
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto" href="Job.html">My Jobs</a></li>
+                    <li><a class="nav-link scrollto" href="EmpFindEmployee.html">Find Employee</a></li>
+                    <li>
+                        <button type="button" class="btn btn-primary" onclick="logout()">Logout</button>
+                    </li>
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav><!-- .navbar -->
+        </div>
+    </header>
+    <!-- End Header -->
+
+    <!-- ======= Profile ======= -->
+    <div id="divApplicantList" style="padding-top: 100pt;">
+    </div>
+    <!-- End Profile -->
+
+    <!-- ======= Modal ======= -->
+    <section>
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <form action="#" id="form-updateprofile">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Recieve Application</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-1 row">
+                                <label class="col-sm-2 col-form-label">Status Application</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="jsusername">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Recieve</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+    <!-- ======= End Modal ======= -->
+
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
+        <div class="container">
+
+            <div class="row"></div>
+            <div class="col-lg-6 pt-4 pt-lg-0 content">
+
+            </div>
+        </div>
+        </div>
+    </section><!-- End About Section -->
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer">
+
+        <div class="footer-top">
+
+            <div class="container">
+
+                <div class="row  justify-content-center">
+                    <div class="col-lg-6">
+                        <h3>Laborlab</h3>
+                        <p>Indonesia Leading Talent Ecosystem</p>
+                    </div>
+                </div>
+
+                <div class="social-links">
+                    <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+                    <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+                    <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+                    <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+                    <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </footer><!-- End Footer -->
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <!-- <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script> -->
+    <script src="eNno/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="eNno/assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="eNno/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="eNno/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="eNno/assets/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="eNno/assets/js/main.js"></script>
+
+    <script>
+        function applicantList() {
+            let x = document.cookie;
+            let token = x.split("=")[1]
+            var lStorage = localStorage.getItem("Job_ID");
+
+            var myHeaders = new Headers();
+            myHeaders.append("Access-Token", token);
+
+            var requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
+            fetch(`http://127.0.0.1:5000/applicantlist/${lStorage}`, requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    console.log(result[0])
+                    var x = `
+                        <div class="container" id="divApplicantList">
+                            <div class="row">
+                            <div class="col-2">
+                                Jobseeker Profile Picture
+                            </div>
+                            <div class="col">
+                                <ul class="ulListingJob">
+                                <li>
+                                    <div>
+                                    <h4 id="applicantList">Applicant Name : ${result[0].name}</h4>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div>
+                                    Gender : ${result[0].gender}
+                                    </div>
+                                </li>
+                                <li>
+                                    <div>
+                                    Education : ${result[0].education}
+                                    </div>
+                                </li>
+                                <li>
+                                    <div>
+                                    Major : ${result[0].major}
+                                    <div>
+                                </li>
+                                <li>
+                                    <div>
+                                    Email : ${result[0].email}
+                                    <div>
+                                </li>
+                                </ul>
+                            </div>
+                            </div>
+                        </div>`
+                    document.getElementById("divApplicantList").innerHTML = x;
+                })
+                .catch(error => console.log('error', error));
+        }
+
+        function logout() {
+            document.cookie = "token=; expires=Thu, 01 jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = 'index.html'
+            localStorage.clear();
+        }
+
+        function updateApplication() {
+            let x = document.cookie;
+            let token = x.split("=")[1]
+            var lStorage = localStorage.getItem("Job_ID");
+
+            var myHeaders = new Headers();
+            myHeaders.append("Access-Token", token);
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "status": "Application Received"
+            });
+
+            var requestOptions = {
+                method: 'PUT',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:5000/updateapplication/3", requestOptions)
+                .then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+        }
+
+    </script>
+</body>
+
+</html>

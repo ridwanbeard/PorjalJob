@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Job Detail</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <!-- <link href="assets/img/favicon.png" rel="icon"> -->
+  <link href="eNno/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="eNno/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="eNno/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="eNno/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <!-- <link href="eNno//vendor/glightbox/css/glightbox.min.css" rel="stylesheet"> -->
+  <link href="eNno/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="eNno/assets/css/style.css" rel="stylesheet">
+
+
+<body onload="getAPostedJob()">
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+      <h1 class="logo"><a href="index.html">Laborlab</a></h1>
+      <nav id="navbar" class="navbar">
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+    </div>
+  </header>
+  <!-- End Header -->
+
+  <!-- ======= Profile ======= -->
+  <div id="divDetailJob">
+  </div>
+  <!-- End Profile -->
+
+  <!-- ======= About Section ======= -->
+  <section id="about" class="about">
+    <div class="container">
+
+      <div class="row"></div>
+      <div class="col-lg-6 pt-4 pt-lg-0 content">
+
+      </div>
+    </div>
+    </div>
+  </section><!-- End About Section -->
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+
+      <div class="container">
+
+        <div class="row  justify-content-center">
+          <div class="col-lg-6">
+            <h3>Laborlab</h3>
+            <p>Indonesia Leading Talent Ecosystem</p>
+          </div>
+        </div>
+
+        <div class="social-links">
+          <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+          <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+          <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+          <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+          <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+        </div>
+
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <!-- <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script> -->
+  <script src="eNno/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="eNno/assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="eNno/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="eNno/assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="eNno/assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="eNno/assets/js/main.js"></script>
+
+<script>
+  function getAPostedJob() {
+    let x = document.cookie;
+    let Job_ID = localStorage.getItem("Job_ID")
+    let token = x.split("=")[1]
+
+    console.log(Job_ID)
+
+    var myHeaders = {
+      // 'Content-Type': "application/json",
+      // 'Access-Token': token
+    }
+
+    let requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow'
+    };
+
+    fetch(`http://127.0.0.1:5000/getjobdetailxlog/${Job_ID}`, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log(result)
+        var x = `
+                <div class="container" id="divDetailJob" style="padding-top:100pt;">
+                  <div class="row">
+                    <div class="col">
+                      <ul class="ulListingJob">
+                        <li>
+                          <div>
+                            <h4 id="jobTitleList">Job Title : ${result[0].Job_Title}</h4>
+                          </div>
+                        </li>
+                        <li>
+                          <div>
+                            Description : ${result[0].Job_Description}
+                          </div>
+                        </li>
+                        <li>
+                          <div>
+                            Requirement : ${result[0].Job_Requirement}
+                          </div>
+                        </li>
+                        <li>
+                          <div>
+                            Salary : ${result[0].Job_Salary}
+                          <div>
+                        </li>
+                        <li>
+                          <div>
+                            Category : ${result[0].Job_Category}
+                          <div>
+                        </li>
+                        <li>
+                          <div>
+                            Area : ${result[0].Area}
+                          <div>
+                        </li>
+                        <li>
+                          <div>
+                            Posting Date : ${result[0].Posting_Date}
+                          <div>
+                        </li>
+                        <li>
+                          <div>
+                            Expire Date : ${result[0].Expired_Date}
+                          <div>
+                        </li>
+                        <li>
+                          <div>
+                            Status : ${result[0].Status}
+                          <div>
+                        </li>
+                      </ul>
+                    </div>
+                </div>`
+        document.getElementById("divDetailJob").innerHTML = x;
+      })
+    .catch(error => console.log('error', error));
+  }
+</script>
+</body>
+
+</html>

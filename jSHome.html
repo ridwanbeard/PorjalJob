@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Jobseeker Home</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <!-- <link href="assets/img/favicon.png" rel="icon"> -->
+  <link href="/eNno/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="/eNno/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/eNno/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="/eNno/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="/eNno/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="/eNno/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="/eNno/assets/css/style.css" rel="stylesheet">
+
+<body onload="jobListing(), jSeekerName()">
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+
+      <h1 class="logo"><a href="index.html">Laborlab</a></h1>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="jSProfile.html">Profile</a></li>
+          <li><a class="nav-link scrollto" href="jSApplications.html">My Application</a></li>
+          <li>
+            <button type="button" class="btn btn-primary" onclick="logout()">Logout</button>
+          </li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+    </div>
+  </header><!-- End Header -->
+
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 pt-5 pt-lg-0 order-2 order-lg-1 d-flex flex-column justify-content-center">
+          <h1>Hi <span id="name"></span></h1>
+          <h2>Welcome to Laborlab</h2>
+        </div>
+        <div class="col-lg-6 order-1 order-lg-2 hero-img">
+          <img src="eNno/assets/img/hero-img.png" class="img-fluid animated" alt="">
+        </div>
+      </div>
+    </div>
+
+  </section>
+  <!--End Hero -->
+
+  <!-- ======= Modal ======= -->
+  <section>
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Login</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-1 row">
+              <label for="inputPassword" class="col-sm-2 col-form-label">Username</label>
+              <div class="col-sm-10">
+                <input type="test" class="form-control" id="user">
+              </div>
+            </div>
+            <div class="mb-1 row">
+              <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+              <div class="col-sm-10">
+                <input type="password" class="form-control" id="pass">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="exampleModa2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <form action="#" id="form-signup">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Register</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-1 row">
+                <label for="#">Register As</label>
+              </div>
+              <div class="mb-1 row">
+                <select class="form-select" aria-label="Default select example" id="role" name="role"
+                  onchange="roleSelectorName()">
+                  <option selected disabled>Choose your role</option>
+                  <option value="employer">employer</option>
+                  <option value="jobseeker">Job Seeker</option>
+                </select>
+              </div>
+              <div class="mb-1 row">
+                <label class="col-sm-2 col-form-label">Username</label>
+                <div class="col-sm-6">
+                  <input type="text" class="form-control" id="username">
+                </div>
+              </div>
+              <div class="mb-1 row">
+                <label class="col-sm-2 col-form-label">Password</label>
+                <div class="col-sm-6">
+                  <input type="password" class="form-control" id="password">
+                </div>
+              </div>
+              <div class="mb-1 row">
+                <label class="col-sm-2 col-form-label" id="signup-fullnamelabel">Full Name</label>
+                <div class="col-sm-6">
+                  <input type="text" class="form-control" id="name">
+                </div>
+              </div>
+              <div class="mb-1 row">
+                <label class="col-sm-2 col-form-label">email</label>
+                <div class="col-sm-6">
+                  <input type="email" class="form-control" id="email">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="register()"
+                data-bs-dismiss="modal">Register</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <main id="main">
+  </section>
+  <!--End Modal -->
+
+  <!-- ======= Sorting Section ======= -->
+  <section id="sectionSorting" style="padding-top: 100pt;">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <div>
+            <label for="jobtitle" style="font-weight: bold">Job Title</label>
+            <input type="text" class="form-control" id="inputJobTitle" placeholder="" style="width: 225px;">
+          </div>
+        </div>
+        <div class="col">
+          <div>
+            <label for="category" style="font-weight: bold">Category</label>
+            <input type="text" class="form-control" id="inputCategory" placeholder="" style="width: 225px;">
+          </div>
+        </div>
+        <div class="col">
+          <div>
+            <label for="salary" style="font-weight: bold">Salary</label>
+            <input type="text" class="form-control" id="inputSalary" placeholder="" style="width: 225px;">
+          </div>
+        </div>
+        <div class="col">
+          <div>
+            <label for="area" style="font-weight: bold; color: #444444;">Area</label>
+            <input type="text" class="form-control" id="inputArea" placeholder="" style="width: 225px;">
+          </div>
+        </div>
+        <div class="col-1" style="padding-top: 17pt;">
+          <button type="submit" class="btn btn-primary" onclick="searchJob()">Search</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End Sorting Section -->
+
+  <!-- ======= Listing Section ======= -->
+  <div id="divListingJob">
+  </div>
+  <!-- End Listing Section -->
+
+  <!-- ======= About Section ======= -->
+  <section id="about" class="about">
+    <div class="container">
+
+      <div class="row"></div>
+      <div class="col-lg-6 pt-4 pt-lg-0 content">
+
+      </div>
+    </div>
+    </div>
+  </section><!-- End About Section -->
+
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+
+      <div class="container">
+
+        <div class="row  justify-content-center">
+          <div class="col-lg-6">
+            <h3>Laborlab</h3>
+            <p>Indonesia Leading Talent Ecosystem</p>
+          </div>
+        </div>
+
+        <div class="social-links">
+          <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+          <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+          <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+          <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+          <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+        </div>
+
+      </div>
+    </div>
+
+
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <!-- <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script> -->
+  <script src="eNno/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="eNno/assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="eNno/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="eNno/assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="eNno/assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="eNno/assets/js/main.js"></script>
+
+  <Script>
+
+    function setCookie(cName, cValue, expDays) {
+      let date = new Date();
+      date.setTime(date.getTime() + (expDays * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = cName + "=" + cValue + "; " + expires + "; path=/";
+    }
+
+    function roleSelectorName() {
+      let labelselection = document.getElementById("signup-fullnamelabel")
+      let role = document.getElementById("role").value
+
+      if (role === "jobseeker") {
+        role = "jobseeker"
+        role.innerHTML = "Job Seeker"
+        labelselection.innerHTML = "Fullname Name"
+      } else {
+        role = "employer"
+        role.innerHTM = "Employer"
+        labelselection.innerHTML = "Company Name"
+      }
+    }
+
+    function jobListing() {
+      var myHeaders = new Headers();
+      var requestOptions = {
+        method: 'GET',
+        redirect: 'follow'
+      };
+
+      fetch("http://127.0.0.1:5000/getavailablejob", requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          var arr = []
+          arr = result
+
+          for (let i = 0; i < arr.length; i++) {
+            var x = `
+            <div class="container" id="divListingJob">
+              <div class="row">
+                <div class="col-2">
+                  <img src="eNno/assets/img/CompanyLogo/${arr[i].Emp_ID}.png">
+                </div>
+                <div class="col">
+                  <ul class="ulListingJob">
+                    <li>
+                      <div>
+                        <h4 id="jobTitleList">Job Title : ${arr[i].Job_Title}</h4>
+                      </div>
+                    </li>
+                    <li>
+                      <div>
+                        Requirement : ${arr[i].Job_Requirement}
+                      </div>
+                    </li>
+                    <li>
+                      <div>
+                        Salary : ${arr[i].Job_Salary}
+                      <div>
+                    </li>
+                    <li>
+                      <div>
+                        Area : ${arr[i].Area}
+                      <div>
+                    </li>
+                    <li>
+                      <div>
+                        Expire Date : ${arr[i].Expired_Date}
+                      <div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-1">
+                  <button type="submit" class="btn btn-primary" onclick="jSJobDetail(${arr[i].Job_ID})">Detail</button>
+                </div>
+              </div>
+            </div>
+            
+            <div id="divListingJob">
+              
+            </div>`
+            document.getElementById("divListingJob").innerHTML += x;
+          }
+
+        })
+        .catch(error => console.log('error', error));
+    }
+
+    function logout() {
+      document.cookie = "token=; expires=Thu, 01 jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = 'index.html'
+      localStorage.clear();
+    }
+
+    function jSeekerName() {
+      let x = document.cookie;
+      let token = x.split("=")[1]
+
+      var myHeaders = {
+        'Content-Type': "application/json",
+        'Access-Token': token
+      }
+
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders
+      };
+
+      fetch("http://127.0.0.1:5000/jobseeker/profile", requestOptions)
+        .then(response => response.json())
+        .then(result => {
+          document.getElementById("name").innerHTML = result[0].name
+        })
+        .catch(error => console.log('error', error));
+    }
+
+    function jSJobDetail(item) {
+      localStorage.setItem("Job_ID", item)
+      location.href = "jSJobDetail.html"
+    }
+
+    function searchJob() {
+      title = document.getElementById("inputJobTitle").value
+      category = document.getElementById("inputCategory").value
+      salary = document.getElementById("inputSalary").value
+      area = document.getElementById("inputArea").value
+
+      // remove data from html element
+      document.getElementById("divListingJob").innerHTML = '';
+
+      let x = document.cookie;
+      let Job_ID = localStorage.getItem("Job_ID")
+      let token = x.split("=")[1]
+
+      const myHeaders = new Headers();
+      myHeaders.append("Access-Token", token);
+      myHeaders.append("Content-Type", "application/json");
+
+      let raw = JSON.stringify({
+        "title": title,
+        "category": category,
+        "salary": salary,
+        "area": area
+      });
+
+      let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+      };
+
+      fetch("http://127.0.0.1:5000/getjoboncriteria", requestOptions)
+        .then(response => response.json())
+        .then(result => { console.log(result)
+        let cardList = '';
+
+          result.forEach((item) => {
+            cardList += `
+            <div class="container" id="divListingJob">
+                <div class="row">
+                  <div class="col-2">
+                    <img src="eNno/assets/img/CompanyLogo/${item.Emp_ID}.png">
+                  </div>
+                  <div class="col">
+                    <ul class="ulListingJob">
+                      <li>
+                        <div>
+                          <h4 id="jobTitleList">Job Title : ${item.Job_Title}</h4>
+                        </div>
+                      </li>
+                      <li>
+                        <div>
+                          Requirement : ${item.Job_Requirement}
+                        </div>
+                      </li>
+                      <li>
+                        <div>
+                          Salary : ${item.Job_Salary}
+                        <div>
+                      </li>
+                      <li>
+                        <div>
+                          Area : ${item.Area}
+                        <div>
+                      </li>
+                      <li>
+                        <div>
+                          Expire Date : ${item.Expired_Date}
+                        <div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-1">
+                    <button type="submit" class="btn btn-primary" onclick="detailJob(${item.Job_ID})">Detail</button>
+                  </div>
+                </div>
+              </div>`
+            })
+          // Insert data to html element
+          document.getElementById("divListingJob").innerHTML += cardList;
+        }
+    )
+    .catch (error => console.log('error', error));
+    }
+
+    function detailJob(item) {
+      localStorage.setItem("Job_ID", item)
+      location.href = "JobDetail.html"
+    }
+  </Script>
+</body>
+
+</html>

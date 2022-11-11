@@ -1,26 +1,43 @@
 import base64
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request , current_app
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
+from flask_cors import CORS, cross_origin
+import jwt
+
+cors_config = {
+    "origins": ['http://127.0.0.1:5000'],
+    "methods": ['GET, POST, OPTIONS, PUT, PATCH, DELETE']
+}
 
 app = Flask(__name__)
+app.debug = True
 
-# app.config['SECRET_KEY']='secret'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:sql123@localhost:5432/dbportaljob?sslmode=disable'
+CORS(app, resources = {
+    r"/*": cors_config
+})
+
+ctx = app.app_context()
+ctx.push()
+
+app.config['SECRET_KEY']='secret'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sql123@localhost:5432/dbportaljob?sslmode=disable'
+
+
 db = SQLAlchemy(app)
-
 
 class Jobseeker(db.Model):
     idjobseeker = db.Column(db.Integer, primary_key=True, index=True, nullable=False, unique=True)
     username = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(50), nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    education = db.Column(db.String(5), nullable=False)
-    major = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(10), nullable=True)
+    education = db.Column(db.String(5), nullable=True)
+    major = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(50), nullable=False)
-    bio = db.Column(db.String(500), nullable=False)
+    phone = db.Column(db.String(50), nullable=True)
+    bio = db.Column(db.String(500), nullable=True)
     jobseeker_rel = db.relationship('Application', cascade="all,delete", backref='jobseeker')
 
 class Employer(db.Model):
@@ -57,11 +74,12 @@ class Application(db.Model):
 
 
 # ------------------------------------------------------------------------------------------->>> generate first if db is empty
-db.create_all()
-db.session.commit()
+# db.create_all()
+# db.session.commit()
 
 
 
+# ------------------------------------------------------------------------------------------->>> Basic Auth
 def auth_jobseeker(auth):
     encode = base64.b64decode(auth[6:])
     str_encode = encode.decode('ascii')
@@ -70,9 +88,18 @@ def auth_jobseeker(auth):
     password = lst[1]   
     jobseeker = Jobseeker.query.filter_by(username=username).filter_by(password=password).first()
     if jobseeker:
-        return str(jobseeker.idjobseeker)
-    else:
-        return 
+        tokenJS = jwt.encode({
+                'UID': jobseeker.idjobseeker,
+				'passkey' :jobseeker.password,
+                # 'exp': datetime.datetime.now() + datetime.timedelta(hours=24)
+            },'secret' ,algorithm='HS256')
+        return {
+            "message": tokenJS
+        }
+    else :
+        return {
+            "message": "False"
+        }
         
 def auth_employer(auth):
     encode = base64.b64decode(auth[6:])
@@ -82,49 +109,74 @@ def auth_employer(auth):
     password = lst[1]   
     employer = Employer.query.filter_by(username=username).filter_by(password=password).first()
     if employer:
-        return (employer.idemployer)
-    else:
-        return 0
+        tokenEmp = jwt.encode({
+                'UID': employer.idemployer,
+				'passkey' :employer.password,
+                # 'exp': datetime.datetime.now() + datetime.timedelta(hours=24)
+            },'secret' ,algorithm='HS256')
+        return {
+            "message": tokenEmp
+        }
+    else :
+        return {
+            "message": "False"
+        }
 
 
+# ------------------------------------------------------------------------------------------->>> Home BE&FE UDAH
+@app.route('/login', methods=['POST'])
+def login_user():
+    decode = request.headers['Authorization']
+    allowJS = auth_jobseeker(decode)
+    allowE = auth_employer(decode)
+    if allowJS['message'] != "False":
+        return{
+            "token" : allowJS['message'],
+            "status" : "trueJobS"
+        }, 200
+    elif allowE['message'] != "False":
+        return{
+            "token" : allowE['message'],
+            "status" : "trueEmp"
+        }, 200
+    return {
+        "message": "Login Failed"
+    }, 401
 
-# ------------------------------------------------------------------------------------------->>> Home
+# ------------------------------------------------------------------------------------------->>> Home BE&FE UDAH
 @app.route('/', methods=['GET'])
 def home():
     return jsonify(
         "Home"
     )
 
-
-
 # ------------------------------------------------------------------------------------------->>> Jobseeker
-@app.route('/jobseeker/register', methods=['POST'])           # Register Account Jobseeker >>>>>
+@app.route('/jobseeker/register', methods=['POST'])           # Register Account Jobseeker >>>>> BE&FE UDAH
 def create_jobseeker():
     data = request.get_json(force=True)
     registered = Jobseeker.query.filter_by(email=data['email']).first()
     sameusername = Jobseeker.query.filter_by(username=data['username']).first()
     if sameusername and registered :
         return{
-            "message" : "Account with this email and username have already registered account"
-        }
+            "message" : "error 0"
+            # "message" : "Account with this email and username have already registered account"
+        }, 422
     if sameusername :
         return{
-            "message" : "Username is already taken, please choose another username"
-        }
+            "message" : "error 1"
+            # "message" : "Username is already taken, please choose another username"
+        }, 422
     if registered :
         return{
-            "message" : "Account with this email have already registered"
-        }
+            "message" : "error 2"
+            # "message" : "Account with this email have already registered"
+        }, 422
     else :
         jobseeker = Jobseeker(
             username = data['username'],
             password = data['password'],
             name = data['name'],
-            gender = data['gender'],
-            education = data['education'],
-            major = data['major'],
-            email = data['email'],
-            bio = data['bio']
+            email = data['email']
         )
         try:
             db.session.add(jobseeker)
@@ -137,41 +189,60 @@ def create_jobseeker():
             "Message": "Account data save success"
         }, 201
 
-@app.route('/jobseeker/profile', methods=['GET'])             # Account Profile Jobseeker >>>>>
+@app.route('/employerjs/profile/<id>', methods=['GET'])             # Account Profile Jobseeker >>>>> BE&FE UDAH
+def get_jobseeker_byemployer(id):
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    employer = Employer.query.filter_by(idemployer=uid).first()
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=id).first()
+
+    return jsonify([
+        {
+            'name':jobseeker.name,
+            'username':jobseeker.username,
+            'password':jobseeker.password,
+            'gender':jobseeker.gender,
+            'education':jobseeker.education,
+            'major':jobseeker.major,
+            'email':jobseeker.email,
+            'bio':jobseeker.bio
+        }
+        ]), 201
+
+@app.route('/jobseeker/profile', methods=['GET'])             # Account Profile Jobseeker >>>>> BE&FE UDAH
 def get_jobseeker_login():
-    decode = request.headers.get('Authorization')
-    allow = auth_jobseeker(decode)
-    jobseeker = Jobseeker.query.filter_by(idjobseeker=allow).first()
-    if not jobseeker :
-        return {
-            'message': 'ACCESS DENIED !!'
-        }, 400
-    else :
-        return jsonify([
-            {
-                'name':jobseeker.name,
-                'username':jobseeker.username,
-                'password':jobseeker.password,
-                'gender':jobseeker.gender,
-                'education':jobseeker.education,
-                'major':jobseeker.major,
-                'email':jobseeker.email,
-                'bio':jobseeker.bio
-            }
-            ]), 201
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
+
+    return jsonify([
+        {
+            'name':jobseeker.name,
+            'username':jobseeker.username,
+            'password':jobseeker.password,
+            'gender':jobseeker.gender,
+            'education':jobseeker.education,
+            'major':jobseeker.major,
+            'email':jobseeker.email,
+            'bio':jobseeker.bio
+        }
+        ]), 201
         
 @app.route('/jobseeker/updateprofile', methods=['PUT'])       # Update Account Jobseeker >>>>>
 def update_jobseeker():
-    decode = request.headers.get('Authorization')
-    allow = auth_jobseeker(decode)
-    data  = request.get_json()
-    jobseeker = Jobseeker.query.filter_by(idjobseeker=allow).first()
-    registered = Jobseeker.query.filter_by(email=data['email']).filter(Jobseeker.idjobseeker!=allow).first()
-    sameusername = Jobseeker.query.filter_by(username=data['username']).filter(Jobseeker.idjobseeker!=allow).first()
-    if not jobseeker :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    
+    data  = request.get_json(force=True)
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
+
+    registered = Jobseeker.query.filter_by(email=data['email']).filter(Jobseeker.idjobseeker!=uid).first()
+    sameusername = Jobseeker.query.filter_by(username=data['username']).filter(Jobseeker.idjobseeker!=uid).first()
+
     if sameusername and registered :
         return{
             "message" : "Email and username have already registered, please choose another email and username"
@@ -186,7 +257,7 @@ def update_jobseeker():
         }
     else :
         jobseeker.username = data['username']
-        jobseeker.password = data['password']
+        # jobseeker.password = data['password']
         jobseeker.name = data['name']
         jobseeker.gender = data['gender']
         jobseeker.education = data['education']
@@ -200,74 +271,68 @@ def update_jobseeker():
 
 @app.route('/jobseeker/deleteaccount', methods=['DELETE'])    # Delete Account Jobseeker >>>>>
 def delete_jobseeker():
-    decode = request.headers.get('Authorization')
-    allow = auth_jobseeker(decode)
-    jobseeker = Jobseeker.query.filter_by(idjobseeker=allow).first()
-    if not allow :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    else :
-        db.session.delete(jobseeker)
-        db.session.commit()
-        return {
-            "Message": " Account delete success"
-            }, 201
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
+
+    db.session.delete(jobseeker)
+    db.session.commit()
+    return {
+        "Message": " Account delete success"
+        }, 201
 
 @app.route('/searchjobseeker', methods=['POST'])              # Search Jobseeker By Criteria
 def search_jobseeker():
-    data = request.get_json()
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    if not employer :
-        return {
-            'message' : 'ACCESS DENIED !!'
-        }, 400
-    elif data['name'] == "" and data['gender'] == "" and data['education'] == "" and data['major'] == "" :
+    data = request.get_json(force=True)
+
+    if data['name'] == "" and data['gender'] == "" and data['education'] == "" and data['major'] == "" :
         return jsonify([
         {
             "name" : jobseeker.name,
             "gender" : jobseeker.gender,
             "education" : jobseeker.education,
             "major" : jobseeker.major,
-            "email" : jobseeker.email
+            "email" : jobseeker.email,
+            "bio" : jobseeker.bio
         } for jobseeker in Jobseeker.query.all()
         ]), 200
     else :
         result = Jobseeker.query.filter(Jobseeker.name.ilike('%'+data['name']+'%')).filter(Jobseeker.gender.ilike('%'+data['gender']+'%')).filter(Jobseeker.education.ilike('%'+data['education']+'%')).filter(Jobseeker.major.ilike('%'+data['major']+'%')).all()
         arr =[]
         for x in result:
-            arr.append([
+            arr.append(
             {
                 "name" : x.name,
                 "gender" : x.gender,
                 "education" : x.education,
                 "major" : x.major,
-                "email" : x.email
+                "email" : x.email,
+                "bio" : x.bio
             }
-            ])
+            )
         return jsonify(arr), 200
 
 
 
 # ------------------------------------------------------------------------------------------->>> Employer
-@app.route('/employer/register', methods=['POST'])            # Register Account Employer >>>>>
+@app.route('/employer/register', methods=['POST'])            # Register Account Employer >>>>> BE&FE UDAH
 def create_employer():
     data = request.get_json(force=True)
     registered = Employer.query.filter_by(email=data['email']).first()
     sameusername = Employer.query.filter_by(username=data['username']).first()
+
     if sameusername and registered :
         return{
-            "message" : "Account with this email and username have already registered"
+            "message" : "error 0"
         }
     if sameusername :
         return{
-            "message" : "Username is already taken, please choose another username"
+            "message" : "error 1"
         }
     if registered :
         return{
-            "message" : "Account with this email have already registered"
+            "message" : "error 2"
         }
     else :
         employer = Employer(
@@ -275,7 +340,7 @@ def create_employer():
             password = data['password'],
             companyname = data['companyname'],
             email = data['email'],
-            bio = data['bio']
+            bio = ""
         )
         try:
             db.session.add(employer)
@@ -288,135 +353,157 @@ def create_employer():
             "Message": "Account data save success"
         }, 201
 
-@app.route('/employer/profile', methods=['GET'])              # Account Profile  >>>>>
+@app.route('/employer/profile', methods=['POST'])              # Account Profile  >>>>> BE&FE UDAH
 def get_employer_login():
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    if not employer :
-        return {
-            'message': 'ACCESS DENIED !!'
-        }, 400
-    else:
-        return jsonify([
-            {
-                'name':employer.companyname,
-                'username':employer.username,
-                'password':employer.password,
-                'email':employer.email,
-                'bio':employer.bio
-            }
-        ]), 201
 
-@app.route('/employer/updateprofile', methods=['PUT'])        # Update Account Employer >>>>>
+    data  = request.get_json(force=True)
+    decoded = jwt.decode(data["token"], 'secret', algorithms=['HS256'])
+
+    uid = decoded["UID"]
+    employer = Employer.query.filter_by(idemployer=uid).first()
+
+    return {
+            'name':employer.companyname,
+            'username':employer.username,
+            'password':employer.password,
+            'email':employer.email,
+            'bio':employer.bio
+        }, 201
+
+@app.route('/employer/updateprofile', methods=['PUT'])        # Update Account Employer >>>>> BE&FE UDAH
 def update_employer():
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    data  = request.get_json()
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    registered = Employer.query.filter_by(email=data['email']).filter(Employer.idemployer!=allow).first()
-    sameusername = Employer.query.filter_by(username=data['username']).filter(Employer.idemployer!=allow).first()
-    if not employer :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    if sameusername and registered :
-        return{
-            "message" : "Account with this email and username have already registered"
-        }
-    if sameusername :
-        return{
-            "message" : "Username is already taken, please choose another username"
-        }
-    if registered :
-        return{
-            "message" : "Account with this email have already registered"
-        }
-    else :
-        employer.username = data['username']
-        employer.password = data['password']
-        employer.companyname = data['companyname']
-        employer.email = data['email']
-        employer.bio = data['bio']
-        db.session.commit()
-        return {
-            "Message": "Account data update success"
-            }, 201
+    data  = request.get_json(force=True)
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    employer = Employer.query.filter_by(idemployer=uid).first()
 
-@app.route('/employer/deleteaccount', methods=['DELETE'])     # Delete Account Employer >>>>>
+    employer.username = data.get('username', employer.username)
+    employer.companyname = data.get('companyname', employer.companyname)
+    employer.email = data.get('email', employer.email)
+    employer.bio = data.get('bio', employer.bio)
+    db.session.commit()
+
+    return {
+        "mess": employer.username
+    }
+
+
+@app.route('/employer/deleteaccount', methods=['DELETE'])     # Delete Account Employer >>>>> BE&FE UDAH
 def delete_employer():
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    if not employer :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    else :
-        db.session.delete(employer)
-        db.session.commit()
-        return {
-            "Message": "Account delete success"
-        }, 500    
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+
+    employer = Employer.query.filter_by(idemployer=uid).first()
+
+    db.session.delete(employer)
+    db.session.commit()
+    return {
+        "Message": "Account delete success"
+    }, 500    
 
 
 
 # ------------------------------------------------------------------------------------------->>> Job
-@app.route('/getapostedjob/<id>', methods=['GET'])            # Get a Posted Job >>>>>
+@app.route('/getjobdetail/<id>', methods=['GET'])            # Get Detail a Posted Job harus login
+def get_jobdetail(id):
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
+    job = Job.query.filter_by(idjob=id).first()
+
+    return jsonify([
+        {   
+            "Job_Title" : job.title,
+            "Job_Description" : job.description,
+            "Job_Requirement" : job.requirement,
+            "Job_Salary" : job.salary,
+            "Job_Category" : job.category,
+            "Area" : job.area,
+            "Posting_Date" : job.postingdate,
+            "Expired_Date" :	job.expiredate,
+            "Status" : job.status
+        }
+    ]), 201
+
+@app.route('/getjobdetailxlog/<id>', methods=['GET'])            # Get Detail a Posted Job tanpa login
+def get_jobdetailxlog(id):
+    job = Job.query.filter_by(idjob=id).first()
+
+    return jsonify([
+        {   
+            "Job_Title" : job.title,
+            "Job_Description" : job.description,
+            "Job_Requirement" : job.requirement,
+            "Job_Salary" : job.salary,
+            "Job_Category" : job.category,
+            "Area" : job.area,
+            "Posting_Date" : job.postingdate,
+            "Expired_Date" :	job.expiredate,
+            "Status" : job.status
+        }
+    ]), 201
+
+
+@app.route('/getapostedjob/<id>', methods=['GET'])            # Get a Posted Job >>>>> BE&FE UDAH
 def get_apostedjob(id):
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    job = Job.query.filter_by(idjob=id).filter_by(idemployer = allow).first()
-    if not job :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    else:
-        return jsonify([
-            {
-                "Job_Title" : job.title,
-	            "Job_Description" : job.description,
-	            "Job_Requirement" : job.requirement,
-                "Job_Salary" : job.salary,
-	            "Job_Category" : job.category,
-	            "Area" : job.area,
-	            "Posting_Date" : job.postingdate,
-	            "Expired_Date" :	job.expiredate,
-	            "Status" : job.status
-            }
-        ]), 201
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    job = Job.query.filter_by(idjob=id).filter_by(idemployer = uid).first()
 
-@app.route('/getallpostedjob', methods=['GET'])               # Get All Posted Job >>>>>
-def get_allpostedob():
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    job = Job.query.filter_by(idemployer = allow).all()
-    if not job :
-        return {
-            "Message": 'ACCESS DENIED !'
+    return jsonify([
+        {   
+            "Job_ID" :job.idjob,
+            "Job_Title" : job.title,
+            "Job_Description" : job.description,
+            "Job_Requirement" : job.requirement,
+            "Job_Salary" : job.salary,
+            "Job_Category" : job.category,
+            "Area" : job.area,
+            "Posting_Date" : job.postingdate,
+            "Expired_Date" :	job.expiredate,
+            "Status" : job.status
         }
-    else:
-        return jsonify([
-            {
-                "Job_Title" : job.title,
-	            "Job_Description" : job.description,
-	            "Job_Requirement" : job.requirement,
-                "Job_Salary" : job.salary,
-	            "Job_Category" : job.category,
-	            "Area" : job.area,
-	            "Posting_Date" : job.postingdate,
-	            "Expired_Date" :	job.expiredate,
-	            "Status" : job.status
-            } for job in Job.query.all()
-        ]), 201
+    ]), 201
 
-@app.route('/getavailablejob', methods=['GET'])               # List All Available Job >>>>>
+@app.route('/getallpostedjob', methods=['GET'])               # Get All Posted Job >>>>> BE&FE UDAH
+def get_allpostedjob():
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    job2 = Job.query.filter_by(idemployer = uid).all()
+
+    if job2 :
+        return jsonify([
+            {   "Job_ID" :job.idjob,
+                "Job_Title" : job.title,
+                "Job_Description" : job.description,
+                "Job_Requirement" : job.requirement,
+                "Job_Salary" : job.salary,
+                "Job_Category" : job.category,
+                "Area" : job.area,
+                "Posting_Date" : job.postingdate,
+                "Expired_Date" :	job.expiredate,
+                "Status" : job.status
+            } for job in job2
+        ]), 201
+    return{
+        'message' : "Job is null"
+    }
+
+@app.route('/getavailablejob', methods=['GET'])               # List All Available Job >>>>> BE&FE UDAH
 def get_availablejob():
     today = datetime.now()
     job = Job.query.filter_by(status='Available').filter(Job.expiredate > today).all()
     if job :
         return jsonify([
         {
+            "Emp_ID": x.idemployer,
+            "Job_ID": x.idjob,
             "Job_Title" : x.title,
             "Job_Description" : x.description,
             "Job_Requirement" : x.requirement,
@@ -433,13 +520,15 @@ def get_availablejob():
             "Message": 'No available job'
         }
 
-@app.route('/getjoboncriteria', methods=['GET'])              # Search Job By Criteria <<<<<
+@app.route('/getjoboncriteria', methods=['POST'])              # Search Job By Criteria <<<<<
 def get_joboncriteria():
-    data = request.get_json()
+    data = request.get_json(force=True)
     if data['title'] == "" and data['category'] == "" and data['salary'] == "" and data['area'] == "" :
         return jsonify([
         {
             "Job_Title" : job.title,
+            "Emp_ID" : job.idemployer,
+            "Job_ID": job.idjob,
             "Job_Description" : job.description,
             "Job_Requirement" : job.requirement,
             "Job_Salary" : job.salary,
@@ -457,6 +546,8 @@ def get_joboncriteria():
             {
                 "Job_Title" : x.title,
                 "Job_Description" : x.description,
+                "Emp_ID" : x.idemployer,
+                "Job_ID": x.idjob,
                 "Job_Requirement" : x.requirement,
                 "Job_Salary" : x.salary,
                 "Job_Category" : x.category,
@@ -483,49 +574,48 @@ def get_joboncriteria():
             } for x in result
             ]), 200
 
-@app.route('/create/job', methods=['POST'])                   # Create Job >>>>>
+@app.route('/create/job', methods=['POST'])                   # Create Job >>>>> BE&FE UDAH
 def create_job():
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    data = request.get_json()
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    posted = Job.query.filter_by(title=data['title']).first()
+    data = request.get_json(force=True)
+    token = data['Access-Token']
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    employer = Employer.query.filter_by(idemployer=uid).first()
+    posted = Job.query.filter_by(title=data['title']).filter_by(idemployer=uid).first()
+
     if posted :
         return{
             "message" : "Job with this title already posted"
         }
 
-    if not employer : 
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    else :
-        today=date.today()
-        job = Job(
-            title = data['title'],
-            description = data['description'],
-            requirement = data['requirement'],
-            salary = data['salary'],
-            category = data['category'],
-            area = data['area'],
-            postingdate = today ,
-            expiredate = data['expiredate'],
-            status = "Available",
-            idemployer = employer.idemployer
-	    )
-        db.session.add(job)
-        db.session.commit()
-        return {
-            "Message": "Job save success"
-        }, 201
+    today=date.today()
+    job = Job(
+        title = data['title'],
+        description = data['description'],
+        requirement = data['requirement'],
+        salary = data['salary'],
+        category = data['category'],
+        area = data['area'],
+        postingdate = today ,
+        expiredate = data['expiredate'],
+        status = "Available",
+        idemployer = uid
+    )
+    db.session.add(job)
+    db.session.commit()
+    return {
+        "Message": "Job save success"
+    }, 201
 
-@app.route('/update/job/<id>', methods=['PUT'])               # Update Job >>>>>
-def update_job(id): 
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    data = request.get_json()
-    job = Job.query.filter_by(idjob=id).filter_by(idemployer = allow).first()
-    posted = Job.query.filter_by(title=data['title']).filter(Job.idemployer == allow).filter(Job.idjob != id).first()
+@app.route('/update/job/<id>', methods=['PUT'])               # Update Job >>>>> BE&FE UDAH
+def update_job(id):
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    data = request.get_json(force=True)
+    job = Job.query.filter_by(idjob=id).filter_by(idemployer = uid).first()
+    posted = Job.query.filter_by(title=data['title']).filter(Job.idemployer == uid).filter(Job.idjob != id).first()
+    
     if posted :
         return{
             "message" : "Job with this title already posted"
@@ -548,93 +638,87 @@ def update_job(id):
             "Message": "Job data update success"
             }, 201
 
-@app.route('/delete/job/<id>', methods=['DELETE'])            # Delete Job >>>>>
+@app.route('/delete/job/<id>', methods=['DELETE'])            # Delete Job >>>>> XXXXXXXXXXXXXXXXXX
 def delete_job(id):
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    job = Job.query.filter_by(idjob=id).filter_by(idemployer=allow).first()
-    if not job :
-        return {
-            "Message": 'ACCESS DENIED !'
-            }
-    else : 
-        db.session.delete(job)
-        db.session.commit()
-        return {
-            "Message": " Job delete success"
-        }, 201
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
 
+    job = Job.query.filter_by(idjob=id).filter_by(idemployer = uid).first_or_404()
+ 
+    db.session.delete(job)
+    db.session.commit()
+    return {
+        "Message": " Job delete success"
+    }, 201
 
 
 # ------------------------------------------------------------------------------------------->>> Application
 @app.route('/appliedjob', methods=['GET'])                    # Applied Job List >>>>>
 def get_appliedjob():
-    decode = request.headers.get('Authorization')
-    allow = auth_jobseeker(decode)
-    jobseeker = Jobseeker.query.filter_by(idjobseeker=allow).first()
-    if not jobseeker :
-        return {
-            'message': 'ACCESS DENIED !!'
-        }, 400
-    else :
-        result = db.engine.execute(f''' SELECT application.status, application.application_date, employer.companyname, job.title, job.description, 
-        job.salary, job.postingdate, job.expiredate, application.idjobseeker from application JOIN job ON application.idjob = job.idjob JOIN 
-        employer ON job.idemployer = employer.idemployer WHERE application.idjobseeker = '{allow}'  ''')   
-        return jsonify([
-            {
-                'Application_Status' : x.status,
-                'Application_Date' : x.application_date,
-                'Company_name': x.companyname,
-                'Job_Title': x.title,
-                'Job_Description': x.description,
-                'Job_Salary' : x.salary,
-                'Job_Postingdate' : x.postingdate,
-                'Job_Expiredate' : x.expiredate
-            } for x in result
-        ]), 200
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
 
-@app.route('/applicantlist/<id>', methods=['GET'])            # Applicant list >>>>>
+    result = db.engine.execute(f''' SELECT application.status, application.application_date, employer.companyname, job.title, job.description, 
+    job.salary, job.postingdate, job.expiredate, application.idjobseeker from application JOIN job ON application.idjob = job.idjob JOIN 
+    employer ON job.idemployer = employer.idemployer WHERE application.idjobseeker = '{uid}' ''')   
+    return jsonify([
+        {
+            'Application_Status' : x.status,
+            'Application_Date' : x.application_date,
+            'Company_name': x.companyname,
+            'Job_Title': x.title,
+            'Job_Description': x.description,
+            'Job_Salary' : x.salary,
+            'Job_Postingdate' : x.postingdate,
+            'Job_Expiredate' : x.expiredate
+        } for x in result
+    ]), 200
+
+@app.route('/applicantlist/<id>', methods=['GET'])            # Applicant list >>>>> HARUSNYA YG KELUAR LIST SEMUA APPLICANT BERDASARKAN ID JOB      BE&FE UDAH
 def get_application(id):
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    employer = Employer.query.filter_by(idemployer=allow).first()
-    if not employer :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    elif employer :
-        result = db.engine.execute(f''' SELECT jobseeker.name, jobseeker.gender, jobseeker.education, jobseeker.major, jobseeker.email from application  JOIN jobseeker ON application.idjobseeker = jobseeker.idjobseeker WHERE application.idjob = '{id}'  ''')
-        return jsonify([
-            {
-                'name' : x.name,
-                'gender' : x.gender,
-                'education': x.education,
-                'major': x.major,
-                'email': x.email
-            } for x in result
-        ]), 200
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+
+    employer = Employer.query.filter_by(idemployer=uid).first()
+    
+    result = db.engine.execute(f''' SELECT jobseeker.name, jobseeker.idjobseeker, jobseeker.gender, jobseeker.education, jobseeker.major, jobseeker.email from application  JOIN jobseeker ON application.idjobseeker = jobseeker.idjobseeker WHERE application.idjob = '{id}'  ''')
+    return jsonify([
+        {
+            'name' : x.name,
+            'idjobseeker':x.idjobseeker,
+            'gender' : x.gender,
+            'education': x.education,
+            'major': x.major,
+            'email': x.email
+        } for x in result
+    ]), 200
 
 @app.route('/createapplication/<id>', methods=['POST'])       # Create Application >>>>>
 def create_application(id):
-    decode = request.headers.get('Authorization')
-    allow = auth_jobseeker(decode)
-    jobseeker = Jobseeker.query.filter_by(idjobseeker=allow).first()
-    applied = Application.query.filter((Application.idjobseeker==allow) & (Application.idjob==id)).first()
+    today = datetime.now()
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+
+    jobseeker = Jobseeker.query.filter_by(idjobseeker=uid).first()
+    applied = Application.query.filter((Application.idjobseeker == uid) & (Application.idjob==id)).first()
     today = date.today()
-    if not jobseeker :
-        return {
-            "Message": 'ACCESS DENIED !'
-        }
-    elif applied :
+
+    if applied :
         return {
             "Message" : "You already applied this job"
         }
-    elif jobseeker :
+
+    if jobseeker :
         job = Job.query.filter_by(idjob=id).first()
         application = Application(
             status = "Application Sent",
             application_date = today,
-            idjobseeker = allow,
+            idjobseeker = uid,
             idjob = job.idjob
         )
         db.session.add(application)
@@ -649,15 +733,17 @@ def create_application(id):
 
 @app.route('/updateapplication/<id>', methods=['PUT'])        # Update Application By Employer
 def update_application(id):
-    decode = request.headers.get('Authorization')
-    allow = auth_employer(decode)
-    employer = Employer.query.filter_by(idemployer=allow).first()
+    token = request.headers.get('Access-Token')
+    decoded = jwt.decode(token, "secret", algorithms=["HS256"])
+    uid = decoded["UID"]
+
+    employer = Employer.query.filter_by(idemployer=uid).first()
     if not employer :
         return {
             "Message": 'ACCESS DENIED !'
         }
     elif employer :
-        data  = request.get_json()
+        data  = request.get_json(force=True)
         application = Application.query.filter_by(idapplication=id).first()
         application.status = data['status']
         try:
@@ -671,6 +757,24 @@ def update_application(id):
         }, 201
 
 
+@app.after_request
+def after_request_func(response):
+    origin = request.headers.get('Origin')
+    if request.method == 'OPTIONS':
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Headers', 'x-csrf-token')
+        response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Accept, Authorization, Access-Token, HTTP_ACCESS_TOKEN')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+        response.headers.add('Access-Control-Allow-Headers', 'PUT')
+        if origin:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        if origin:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+    return response
 
-if __name__ == "__main__":
-    app.run()
+
+if __name__ == '__main__':
+    app.run(debug=True)
